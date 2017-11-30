@@ -428,10 +428,12 @@ class Money
   #   Money.new(2000, "USD").exchange_to("EUR")
   #   Money.new(2000, "USD").exchange_to("EUR") {|x| x.round}
   #   Money.new(2000, "USD").exchange_to(Currency.new("EUR"))
-  def exchange_to(other_currency, &rounding_method)
+  def exchange_to(other_currency, offset=nil, &rounding_method)
     other_currency = Currency.wrap(other_currency)
     if self.currency == other_currency
       self
+    elsif @bank.class.name == "EuCentralBank"
+      @bank.exchange_with(self, other_currency, nil, offset, &rounding_method)
     else
       @bank.exchange_with(self, other_currency, &rounding_method)
     end
@@ -445,8 +447,8 @@ class Money
   # @example
   #   n = Money.new(100, "CAD").as_us_dollar
   #   n.currency #=> #<Money::Currency id: usd>
-  def as_us_dollar
-    exchange_to("USD")
+  def as_us_dollar(offset=nil)
+    exchange_to("USD", offset)
   end
 
   # Receive a money object with the same amount as the current Money object
@@ -457,8 +459,8 @@ class Money
   # @example
   #   n = Money.new(100, "USD").as_ca_dollar
   #   n.currency #=> #<Money::Currency id: cad>
-  def as_ca_dollar
-    exchange_to("CAD")
+  def as_ca_dollar(offset=nil)
+    exchange_to("CAD", offset)
   end
 
   # Receive a money object with the same amount as the current Money object
@@ -469,8 +471,8 @@ class Money
   # @example
   #   n = Money.new(100, "USD").as_euro
   #   n.currency #=> #<Money::Currency id: eur>
-  def as_euro
-    exchange_to("EUR")
+  def as_euro(offset=nil)
+    exchange_to("EUR", offset)
   end
 
   # Allocates money between different parties without losing pennies.
